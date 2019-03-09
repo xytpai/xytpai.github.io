@@ -1,16 +1,6 @@
----
-layout:       post
-title:        "坚持不懈，提升专业能力"
-subtitle:     "只要功夫深，铁杵磨成针"
-date:         2018-05-03
-author:       "Allen"
-header-img:   "img/in-post/improve-professional-competence/professional-competence.jpg"
-header-mask:  0.7
-catalog:      false
-multilingual: false
-tags:
-    - Blog
----
+![home](img\home.jpg)
+
+
 
 ## Introduction
 
@@ -40,9 +30,5 @@ tags:
 
 
 
-## Ideas
 
-|  还没想好   |
-| :-----------------------------------: |
-|还没想好|
 
