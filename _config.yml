@@ -1,0 +1,75 @@
+# Site settings
+title: Allen WANG
+SEOTitle: Allen WANG
+header-img: img/home.jpg
+email: wanghmjlu@163.com
+description: "Allen WANG | Big Data Developer"
+keyword: "Allen WANG, allenwhm, big data, 大数据"
+url: "https://allenwhm.github.io"
+baseurl: ""
+
+# SNS settings
+RSS: false
+weibo_username:     wanghuoming
+zhihu_username:     allenwhm
+github_username:    allenwhm
+linkedin_username:  allen-wang-王火明-85650ba9
+#twitter_username:   allewhm
+#facebook_username:  huxpro
+
+# Build settings
+# from 2016, 'pygments' is unsupported on GitHub Pages. Use 'rouge' for highlighting instead.
+highlighter: rouge
+permalink: pretty
+paginate: 10
+exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
+anchorjs: true                          # if you want to customize anchor. check out line:181 of `post.html`
+
+# Gems
+# from PR#40, to support local preview for Jekyll 3.0
+# gems: [jekyll-paginate]
+plugins: [jekyll-paginate]
+
+# Markdown settings
+# replace redcarpet to kramdown,
+# although redcarpet can auto highlight code, the lack of header-id make the catalog impossible, so I switch to kramdown
+# document: http://jekyllrb.com/docs/configuration/#kramdown
+markdown: kramdown
+kramdown:
+  input: GFM                            # use Github Flavored Markdown !important
+
+# Disqus settings
+# disqus_username: allenwhm
+
+# Netease setttings
+netease_comment: false
+
+# Analytics settings
+# Baidu Analytics 
+# ba_track_id: [your track id]
+
+# Google Analytics
+ga_track_id: ''            # Format: UA-xxxxxx-xx
+ga_domain: allenwang.tech
+
+# Sidebar settings
+sidebar: true                           # whether or not using Sidebar.
+sidebar-about-description: "保持好奇与激情<br>以谦卑之心，探索广袤世界"
+sidebar-avatar: /img/avatar-allenwhm.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
+
+# Featured Tags
+featured-tags: true                     # whether or not using Feature-Tags
+featured-condition-size: 1              # A tag will be featured if the size of it is more than this condition value
+
+# Progressive Web Apps
+chrome-tab-theme-color: "#000000"
+service-worker: true
+
+# Friends
+#friends: [
+#    {
+    #     title: "Su",
+    #     href: "http://su.gallery/"
+    # },{
+#    }
+#]
