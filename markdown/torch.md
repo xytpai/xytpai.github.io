@@ -1,4 +1,4 @@
-| [返回主页](index.html) |  torch |  [torch.autograd](torch_autograd.html) |
+| [返回主页](index.html) |  torch |  [torch.autograd](torch_autograd.html) | [torch.tensor](torch_tensor.html) |
 
 ---
 
@@ -840,9 +840,194 @@ torch.prod(x, 1, keepdim=True) # dim=1，列逐点乘
 
 #### 79. torch.std
 ```python
-
+返回标准差，为新张量开辟新数据内存
+a = torch.tensor([[2.,2.],[1.,3.]])
+torch.std(a) # 全元素求方差 
+# tensor(0.8165) # 计算方法为 math.sqrt(2/3), 其中3为n-1
+如果需要对某一维度求，可用如下:
+torch.std(a, dim=1, keepdim=True)
+# tensor([[0.0000],
+#         [1.4142]])
+torch.std(a, dim=1, keepdim=False) # keepdim=False则降维
+# tensor([0.0000, 1.4142])
 ```
 
+#### 80. torch.sum
+```python
+求和，为新张量开辟新数据内存，支持传播
+a = torch.tensor([[2.,2.],[1.,3.]])
+torch.sum(a)
+# tensor(8.)
+torch.sum(a, dim=1, keepdim=True)
+# tensor([[4.],
+#         [4.]])
+```
 
+#### 81. torch.unique
+```python
+返回张量中出现的元素(重复出现只输出一次)，为新张量开辟新数据内存
+推荐数据类型为torch.long
+a = torch.tensor([[2.,2.],[1.,3.]], dtype=torch.long)
+torch.unique(a)
+# tensor([2, 1, 3])
+torch.unique(a, sorted=True) # 排序
+# tensor([1, 2, 3])
+torch.unique(a, return_inverse=True) # 附带元素在unique表位置
+# (tensor([2, 1, 3]), tensor([[0, 0], [1, 2]]))
+torch.unique(a, dim=1) 
+# 一般不推荐使用dim, 为保证输出张量维度正确, 会有一些冗余输出
+# tensor([[2, 2],
+#         [1, 3]])
+```
 
+#### 82. torch.var
+```python
+返回方差，为新张量开辟新数据内存
+a = torch.tensor([[2.,2.],[1.,3.]])
+torch.var(a)
+# tensor(0.6667) # 2/3 其中3为n-1
+torch.var(a, dim=1, keepdim=True)
+# tensor([[0.],
+#         [2.]])
+```
+
+#### 83. torch.allclose
+```python
+返回布尔值, 检查self与other是否在一个范围之内(后面公式)
+参数(self, other, rtol=1e-05, atol=1e-08, equal_nan=False)
+a = torch.tensor([10000., 1e-07])
+b = torch.tensor([10000., 1e-08])
+torch.allclose(a,b)
+# False
+```
+
+$$
+|self - ther| \leq atol + rtol \times |other|
+$$
+
+#### 84. torch.argsort
+```python
+输出排序后的索引，为新张量开辟新数据内存
+返回的元素类型为torch.long
+a = torch.tensor([[1.,2.],[3.,2.]])
+torch.argsort(a, dim=1) # 注意argsort一定要指定dim, 无法元素
+# tensor([[0, 1],
+#         [1, 0]])
+torch.argsort(a, dim=1, descending=True) # 逆排序
+# tensor([[1, 0],
+#         [0, 1]])
+```
+
+#### 85. torch.eq, ne
+```python
+逐元素检查两输入张量是否相等, 为新张量开辟新数据内存
+返回元素类型为torch.uint8
+a = torch.tensor([[1, 2], [3, 4]]) # 推荐 torch.long 类型
+b = torch.tensor([[1, 1], [4, 4]])
+torch.eq(a,b)
+# tensor([[1, 0],
+#         [0, 1]], dtype=torch.uint8)
+torch.ne(a,b)
+# tensor([[0, 1],
+#         [1, 0]], dtype=torch.uint8)
+```
+
+#### 86. torch.ge, le
+```python
+逐元素检查输入1是否大于等于输入2, 为新张量开辟新数据内存
+返回元素类型为torch.uint8
+(ge为大于等于, le为小于等于)
+a = torch.tensor([[1., 2.], [3., 4.]])
+b = torch.tensor([[1., 1.], [4., 4.]])
+torch.ge(a,b)
+# tensor([[1, 1],
+#         [0, 1]], dtype=torch.uint8)
+```
+
+#### 87. torch.gt, lt
+```python
+逐元素检查输入1是否大于输入2, 为新张量开辟新数据内存
+返回元素类型为torch.uint8
+(gt为大于, lt为小于)
+a = torch.tensor([[1., 2.], [3., 4.]])
+b = torch.tensor([[1., 1.], [4., 4.]])
+torch.gt(a,b)
+# tensor([[0, 1],
+#         [0, 0]], dtype=torch.uint8)
+```
+
+#### 88. torch.isfinite, isinf, isnan
+```python
+返回是否是有限, 逐元素, 为新张量开辟新数据内存
+返回元素类型为torch.uint8
+a = torch.tensor([[1.,2.], [float('inf'), 0.]])
+torch.isfinite(a)
+# tensor([[1, 1],
+#         [0, 1]], dtype=torch.uint8)
+torch.isinf(a)
+# tensor([[0, 0],
+#         [1, 0]], dtype=torch.uint8)
+b = torch.tensor([[1.,2.], [float('nan'), 0.]])
+torch.isnan(b)
+# tensor([[0, 0],
+#         [1, 0]], dtype=torch.uint8)
+```
+
+#### 89. torch.kthvalue
+```python
+返回第k小的元素的值与索引, 为新张量开辟新数据内存
+a = torch.tensor([ 1.,  2.,  3.,  4.])
+torch.kthvalue(a, 3)
+# (tensor(3.), tensor(2))
+b = torch.tensor([[2.,2.],[1.,3.]])
+torch.kthvalue(b, 2, dim=1, keepdim=True)
+# (tensor([[2.],
+#          [3.]]), 
+#  tensor([[1],
+#          [1]]))
+```
+
+#### 90. torch.max, min
+```python
+返回最大最小值及其索引, 为新张量开辟新数据内存
+a = torch.tensor([[2.,2.],[1.,3.]])
+torch.max(a)
+# tensor(3.) # 全元素的不返回索引
+torch.max(a, dim=1, keepdim=True)
+# (tensor([[2.],
+#          [3.]]), 
+#  tensor([[1],
+#          [1]]))
+b = torch.tensor([[1.,3.],[2.,2.]])
+torch.max(a, b) # 逐元素返回max(a,b)
+# tensor([[2., 3.],
+#         [2., 3.]])
+```
+
+#### 91. torch.sort
+```python
+返回排序后的值及其索引, 为新张量开辟新数据内存
+a = torch.tensor([[2.,1.],[1.,3.]])
+torch.sort(a, dim=1, descending=True) # 如果dim不指定则默认最后一维
+# (tensor([[2., 1.],
+#          [3., 1.]]),
+#  tensor([[0, 1],
+#          [1, 0]]))
+```
+
+#### 92. torch.topk
+```python
+返回前k大或前k小的元素及索引, 为新张量开辟新数据内存
+a = torch.tensor([ 1.,  2.,  3.,  4.])
+torch.topk(a, 3, largest=True) # largest=False则返回前k小的
+# (tensor([4., 3., 2.]), tensor([3, 2, 1]))
+torch.topk(a, 3, largest=False, sorted=True) # sorted对输出排序
+# (tensor([1., 2., 3.]), tensor([0, 1, 2]))
+b = torch.tensor([[1.,2.,3.],[5.,4.,3.]])
+torch.topk(b, 2, dim=1) # 指定dim
+# (tensor([[3., 2.],
+#          [5., 4.]]), 
+#  tensor([[2, 1],
+#          [0, 1]]))
+```
 

@@ -1,4 +1,4 @@
-| [返回主页](index.html) |  [torch](torch.html) | torch.autograd |
+| [返回主页](index.html) |  [torch](torch.html) | torch.autograd |  [torch.tensor](torch_tensor.html) |
 
 ---
 
