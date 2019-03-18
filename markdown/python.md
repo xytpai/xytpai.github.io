@@ -1,4 +1,4 @@
-| [返回主页](index.html) |
+| [返回主页](index.html) | Python基础 | [Python扩展](python_c.html) |
 
 ---
 
