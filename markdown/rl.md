@@ -120,7 +120,7 @@ J^{PPO2}_\theta = \sum_{(s_t,a_t)}min(
 \begin{matrix}
    A_{\theta'}(s_t,a_t)\frac{p_{\theta}(a_{t}|s_{t})}{p_{\theta'}(a_{t}|s_{t})} \\
    A_{\theta'}(s_t,a_t)clip(
-\frac{p_{\theta}(a_{t}|s_{t})}{p_{\theta'}(a_{t}|s_{t})}
+\frac{p_{\theta}(a_{t}|s_{t})}{p_{\theta'}(a_{t}|s_{t})},
 1-\epsilon,1+\epsilon) \\
 \end{matrix}
 )
@@ -140,6 +140,12 @@ PPO2的clip(a,b,c)的算法为：当a<b时输出b，当a>c时输出c，否则输
 
 ## 3. Q-learning
 
+$$
+MC: \ \ V_\pi(s_t)=G_t, \ \ 直接估计这个状态最终能得到多少反馈 \\
+TD: \ \ V_\pi(s_t)=V_\pi(s_{t+1})+r_t, \ \ 用神经网络去估计两部间的反馈差
+$$
 
+Gt的方差比较大，TD方法需要准确估计V(st+1)。 <br>
 
+![dqntd](img\dqntd.jpg)
 
