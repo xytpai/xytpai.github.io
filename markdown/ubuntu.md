@@ -19,6 +19,7 @@
    中途可能失败，失败则重复之前步骤
 2. sudo apt-get upgrade
 3. sudo reboot
+   如果网卡有问题那么关机后断电等一下再启动
 ```
 
 #### 3. 安装 Nvidia 显卡驱动
@@ -66,5 +67,41 @@ https://developer.nvidia.com/rdp/cudnn-download
    print(cudnn.is_acceptable(x)) # 查看cudnn库是否可用
 ```
 
+#### 7. 安装中文输入法
+```python
+1. sudo apt-get install fcitx-bin
+2. sudo apt-get install fcitx-table
+3. 开始键查找 language 选择 fcitx
+4. sudo reboot
+5. 下载搜狗拼音 https://pinyin.sogou.com/linux/
+6. 右上角当前输入设置中加入 pinyin
+```
+
+#### 8. 安装 VSCode
+```python
+在 https://code.visualstudio.com/ 中安装deb文件
+点击后直接安装
+```
+
+#### 9. 安装 Chrome 浏览器
+```python
+1. sudo wget http://www.linuxidc.com/files/repo/google-chrome.list -P /etc/apt/sources.list.d/
+2. wget -q -O - https://dl.google.com/linux/linux_signing_key.pub  | sudo apt-key add -
+3. sudo apt update
+4. sudo apt install google-chrome-stable
+```
+
+#### 10. 安装 git 代码托管
+```python
+1. sudo apt-get install git
+2. git config --global user.name "username"
+3. git config --global user.email "email"
+4. check: git clone https://github.com/username/project.git
+5. write  push.sh:
+提交方法如下:
+git add .
+git commit -m 'personal modify'
+git push
+```
 
 
