@@ -49,7 +49,7 @@ https://developer.nvidia.com/rdp/cudnn-download
 3. sudo gedit ~/.bashrc 加入下面两行
    export PATH=/usr/local/cuda-10.0/bin${PATH:+:$PATH}
    LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-5. reboot 使用 nvcc -V 测试
+4. reboot 使用 nvcc -V 测试
 ```
 
 #### 5. 安装 CUDNN
