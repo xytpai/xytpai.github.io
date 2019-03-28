@@ -10,6 +10,7 @@
 2. 空出一个分区，操作后这个分区显示未分配
 3. 制作系统盘从系统盘中启动
 4. 在配置中一路继续（注意这个 alongside windows Boot）
+   注意，不要设置免密登入! 否则有可能进不了tty
 5. 安装完成后会重启（拔掉安装盘）
 ```
 
@@ -19,7 +20,7 @@
    中途可能失败，失败则重复之前步骤
 2. sudo apt-get upgrade
 3. sudo reboot
-   如果网卡有问题那么关机后断电等一下再启动
+   如果网卡有问题关机后断电等一下再启动
 ```
 
 #### 3. 安装 Nvidia 显卡驱动
@@ -27,6 +28,13 @@
 1. sudo ubuntu-drivers autoinstall
 2. sudo reboot
 3. 检查是否安装成功 nvidia-smi
+4. 安装最新显卡驱动（由于一般使用较新的软件因此必需）
+   http://www.nvidia.com/Download/index.aspx 下载对应的驱动
+   开始搜索 software & Updayes 转到附加驱动选择非英伟达显驱应用重启，需连网
+   重启后输入: sudo sh NVIDIA..run
+   前几个按照默认选项，直到出现一个缺少某些库的提示这时需要install&override
+   sudo reboot
+   输入 nvidia-smi 可看到最高兼容到的 cuda 版本。
 ```
 
 #### 4. 安装 CUDA
@@ -65,6 +73,9 @@ https://developer.nvidia.com/rdp/cudnn-download
    print(x) # 查看cuda库是否可用
    from torch.backends import cudnn
    print(cudnn.is_acceptable(x)) # 查看cudnn库是否可用
+5. 如果提示驱动版本太老则去官网下载 
+   http://www.nvidia.com/Download/index.aspx
+   
 ```
 
 #### 7. 安装中文输入法
