@@ -46,7 +46,7 @@ https://developer.nvidia.com/rdp/cudnn-download
 #### 5. 安装 CUDNN
 ```python
 1. cp filename.xxx filename.tgz
-2. tar -zxvf cudnn-10.0-linux-x64-v7.tgz
+2. tar -zxvf filename.tgz
 3. sudo cp cuda/include/cudnn.h /usr/local/cuda/include
 4. sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
 5. sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
