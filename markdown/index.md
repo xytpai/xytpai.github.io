@@ -14,15 +14,17 @@
 
 ## Tools
 
-|                     [Pytorch 速查手册](torch.html)                     |
+|                [Pytorch 速查手册](torch.html)                |
 | :----------------------------------------------------------: |
 | 为了方便查阅, 笔者将深度学习框架 Pytorch 的使用手册结合实践地翻译了下 |
-|                   [**Python 学习记录**](python.html)                    |
+|              [**Python 学习记录**](python.html)              |
 |              笔者在学习 Python 的时候留下的东西              |
-|                   [**YAML 速查记录**](yaml.html)                    |
-|              程序配置文件YAML语法              |
-|                   [**Python 爬虫学习记录**](worm.html)                    |
-|              笔者在学习爬虫的时候留下的东西              |
+|                [**YAML 速查记录**](yaml.html)                |
+|                     程序配置文件YAML语法                     |
+|             [**Python 爬虫学习记录**](worm.html)             |
+|                笔者在学习爬虫的时候留下的东西                |
+|            [**Ubuntu 舒适环境搭建**](ubuntu.html)            |
+|      建立一个友好的适用于机器学习开发的 Ubuntu 系统环境      |
 
 
 
