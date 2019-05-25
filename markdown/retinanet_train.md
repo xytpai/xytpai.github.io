@@ -26,11 +26,11 @@ save = True   # 是否储存新参数
 epoch_num = [150000, 300000, 550000] # 迭代步数区间
 # 150k-batch:lr=0.1; 150k-batch:lr=0.01; 250k-batch:lr=0.001
 step_save = 200    # 多少迭代步后储存
-step_eval = 1000   # 多少迭代步后评估并记录
+step_eval = 50     # 多少迭代步后评估并记录
 lr = 0.1           # 初始学习率
 lr_decay = 0.1     # 每一个epoch后权重衰减比例
-nbatch_train = 128 # 训练batch大小
-nbatch_eval  = 50  # 评估batch大小，由于评估与训练占显存量不一样
+nbatch_train = 60  # 训练batch大小
+nbatch_eval  = 60  # 评估batch大小，由于评估与训练占显存量不一样
 size = 224         # 使用多少大小的图像输入
 device = [9]       # 定义(多)GPU编号列表, 第一个为主设备
 root_train = '/home1/xyt/dataset/ILSVRC2012/train'
@@ -127,6 +127,7 @@ for epoch_id in range(len(epoch_num)):
                 labels = labels.cuda(device[0])
                 outputs = net(inputs)
                 Y_pred = torch.max(outputs,1)[1].cpu()
+                labels = labels.cpu()
                 acc = float(sum(np.array(Y_pred==labels)))/len(labels)
                 log_eval_acc.append(float(acc))
                 net.train()
