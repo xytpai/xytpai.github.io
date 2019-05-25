@@ -110,13 +110,6 @@ for epoch_id in range(len(epoch_num)):
         optimizer.step()
         step_id += 1 # 每完成一部step都会自增
 
-        # Save
-        if (step_id%step_save == (step_save-1)) and save:
-            torch.save(net.state_dict(),'net_e.pkl')
-            if len(log_train_acc)>0:
-                np.save('log_train_acc.npy', log_train_acc)
-                np.save('log_eval_acc.npy', log_eval_acc)
-        
         # Eval
         if (step_id%step_eval == (step_eval-1)):
             log_train_acc.append(float(acc))
@@ -134,6 +127,13 @@ for epoch_id in range(len(epoch_num)):
                 # 随机采一次后直接跳出
                 # 因此尽量扩大测试batch大小
                 break
+                
+        # Save
+        if (step_id%step_save == (step_save-1)) and save:
+            torch.save(net.state_dict(),'net_e.pkl')
+            if len(log_train_acc)>0:
+                np.save('log_train_acc.npy', log_train_acc)
+                np.save('log_eval_acc.npy', log_eval_acc)
         
 		# Break
         if step_id >= epoch_num[epoch_id]:
