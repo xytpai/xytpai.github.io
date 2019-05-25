@@ -1,4 +1,4 @@
-| [返回主页](index.html) | [特征提取器](retinanet_extractor.html) | 检测器 | [锚生成器](retinanet_anchors.html) | [损失接口](retinanet_loss.html)
+| [返回主页](index.html) | [特征提取器](retinanet_extractor.html) | 检测器 | [锚生成器](retinanet_anchors.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [推理过程](retinanet_inference.html) | [性能评估](retinanet_eval.html)
 
 ---
 
@@ -21,7 +21,7 @@ class Detector(nn.Module):
         # s6级预测是在s5的输出特征基础上再做一次3X3卷积
         # 检测器的所有卷积层都不使用BN
         self.conv_out6 = nn.Conv2d(2048, 256, kernel_size=3, padding=1, stride=2)
-		# s5级预测是在s5的输出特征上执行一个降维操作
+        # s5级预测是在s5的输出特征上执行一个降维操作
         self.prj_5 = nn.Conv2d(2048, 256, kernel_size=1)
         # 下面的prj_4,3是为了将out4,3映射以执行加法操作
         self.prj_4 = nn.Conv2d(1024, 256, kernel_size=1)
@@ -30,7 +30,7 @@ class Detector(nn.Module):
         # 为了减少由于上采样产生的不连续性
         self.conv_4 =nn.Conv2d(256, 256, kernel_size=3, padding=1)
         self.conv_3 =nn.Conv2d(256, 256, kernel_size=3, padding=1)
-		# 分类器, 所有级预测都共享一个分类器
+        # 分类器, 所有级预测都共享一个分类器
         self.conv_cls = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -69,22 +69,22 @@ class Detector(nn.Module):
     def forward(self, out_list):
         # 拆分输入, 这个输入就是前面的 Resnet-50 输出
         out3, out4, out5 = out_list
-		# 直接卷积out5得到s6预测层
+        # 直接卷积out5得到s6预测层
         out6_pred = self.conv_out6(out5)
         # 直接投影out5得到s5预测层
         out5_pred = self.prj_5(out5)
-		# s4预测层:s5预测层上采用+out4投影
+        # s4预测层:s5预测层上采用+out4投影
         out5_up = self.upsample(out5_pred)
         out4_pred = out5_up + self.prj_4(out4)
-		# s3预测层:s4预测层上采用+out3投影
+        # s3预测层:s4预测层上采用+out3投影
         out4_up = self.upsample(out4_pred)
         out3_pred = out4_up + self.prj_3(out3)
-		# 减少不连续性
+        # 减少不连续性
         out3_pred = self.relu(self.conv_3(out3_pred))
         out4_pred = self.relu(self.conv_4(out4_pred))
-		# 按照步级从小到大排列
+        # 按照步级从小到大排列
         pred_list = [out3_pred, out4_pred, out5_pred, out6_pred]
-		# 获得最终输出
+        # 获得最终输出
         cls_out = []
         reg_out = []
         for item in pred_list:

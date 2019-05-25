@@ -1,4 +1,4 @@
-| [返回主页](index.html) | 特征提取器 | [检测器](retinanet_detector.html) | [锚生成器](retinanet_anchors.html) | [损失接口](retinanet_loss.html)
+| [返回主页](index.html) | 特征提取器 | [检测器](retinanet_detector.html) | [锚生成器](retinanet_anchors.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [推理过程](retinanet_inference.html) | [性能评估](retinanet_eval.html)
 
 ---
 
@@ -32,9 +32,9 @@ class Bottleneck(nn.Module):
 
     def forward(self, x):
         residual = x
-        out = self.relu(self.bn1(self.conv1(x)))
-        out = self.relu(self.bn2(self.conv2(out)))
-        out = self.bn3(self.conv3(out))
+        out = self.relu(self.bn_1(self.conv_1(x)))
+        out = self.relu(self.bn_2(self.conv_2(out)))
+        out = self.bn_3(self.conv_3(out))
         # 在非线性函数之前施加加法
         if self.projection: # 维度不同需要投影
             residual = self.bn_prj(self.conv_prj(x))
@@ -52,7 +52,7 @@ class Extractor(nn.Module):
         super(Extractor, self).__init__()
         self.relu = nn.ReLU() # 这个ReLU只用一次而非InPlace操作
         self.conv_input = nn.Conv2d(3, 64, kernel_size=7, padding=3, 
-        	stride=2, bias=False)
+            stride=2, bias=False)
         self.bn_input = nn.BatchNorm2d(64)
         self.max_pool = nn.MaxPool2d(kernel_size=3, padding=1, stride=2)
         # s4级一共3个残差单元
@@ -64,18 +64,18 @@ class Extractor(nn.Module):
         self.resblock2_2 = Bottleneck(512, 128, 512)
         self.resblock2_3 = Bottleneck(512, 128, 512)
         self.resblock2_4 = Bottleneck(512, 128, 512)
-		# s16级一共6个残差单元
+        # s16级一共6个残差单元
         self.resblock3_1 = Bottleneck(512, 256, 1024, stride=2) # stride:16
         self.resblock3_2 = Bottleneck(1024, 256, 1024)
         self.resblock3_3 = Bottleneck(1024, 256, 1024)
         self.resblock3_4 = Bottleneck(1024, 256, 1024)
         self.resblock3_5 = Bottleneck(1024, 256, 1024)
         self.resblock3_6 = Bottleneck(1024, 256, 1024)
-		# s32级一共3个残差单元
+        # s32级一共3个残差单元
         self.resblock4_1 = Bottleneck(1024, 512, 2048, stride=2) # stride:32
         self.resblock4_2 = Bottleneck(2048, 512, 2048)
         self.resblock4_3 = Bottleneck(2048, 512, 2048)
-		# 分类输出层用于做分类预训练
+        # 分类输出层用于做分类预训练
         self.fc = nn.Linear(2048, classes)
     
     def forward(self, x, classify=True):
@@ -90,14 +90,14 @@ class Extractor(nn.Module):
         x = self.resblock2_2(x)
         x = self.resblock2_3(x)
         out3 = self.resblock2_4(x)
-		# s16
+        # s16
         x = self.resblock3_1(out3)
         x = self.resblock3_2(x)
         x = self.resblock3_3(x)
         x = self.resblock3_4(x)
         x = self.resblock3_5(x)
         out4 = self.resblock3_6(x)
-		# 32
+        # s32
         x = self.resblock4_1(out4)
         x = self.resblock4_2(x)
         out5 = self.resblock4_3(x) # stride = 32
