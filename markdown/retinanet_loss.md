@@ -43,13 +43,14 @@ def focal_loss_detection(
     mask_cls = targets_cls > -1
     feature_reg = feature_reg[mask_cls]
     targets_reg = targets_reg[mask_cls]
+    feature_cls = feature_cls[mask_cls]
     # 得到正负例概率
-    p = feature_cls[mask_cls].sigmoid() # [S+-, classes]
+    p = feature_cls.sigmoid() # [S+-, classes]
     # 拿到标签的OneHot编码
     targets_cls = targets_cls[mask_cls].to(feature_cls.device) #[S+-]
     one_hot = torch.zeros(feature_cls.shape[0], 
-    		1 + classes).scatter_(1, targets_cls.view(-1,1), 1) # [S+-, 1+classes]
-    one_hot = one_hot[:, 1:].to(feature_cls.device) # [S+-, classes]
+            1 + classes).to(feature_cls.device).scatter_(1, targets_cls.view(-1,1), 1) # [S+-, 1+classes]
+    one_hot = one_hot[:, 1:] # [S+-, classes]
     # 计算pt
     pt = p*one_hot + (1.0-p)*(1.0-one_hot)
     # 计算乘项

@@ -37,7 +37,7 @@ from anchors import gen_anchors # 锚生成器
 
 
 class Encoder:
-    def __init__(self, train_size=(257, 257)):
+    def __init__(self, train_iou_th=(0.3, 0.5), train_size=(257, 257)):
         # TODO: 对锚框进行规划
         # train_size 仅对训练时有效
         # 训练时图像大小固定
@@ -54,13 +54,13 @@ class Encoder:
         # 定义IOU阈值
         # 小于th[0]为背景
         # 大于th[1]为前景
-        self.train_iou_th = (0.3, 0.5)
+        self.train_iou_th = train_iou_th
         # =================
         self.train_anchors_yxyx, self.train_anchors_yxhw = \
-        	gen_anchors(self.a_hw, self.scales, self.train_size, self.first_stride)
-        self.train_an = train_anchors_yxyx.shape[0]
-        
-	def encode(self, label_class, label_box):
+            gen_anchors(self.a_hw, self.scales, self.train_size, self.first_stride)
+        self.train_an = self.train_anchors_yxyx.shape[0]
+
+    def encode(self, label_class, label_box):
         # 标签与锚框编码成输出张量
         # label_class: ([N1],[N2],...[Nb])       t.long
         # label_box:   ([N1,4],[N2,4],...[Nb,4]) t.float32 
@@ -70,14 +70,16 @@ class Encoder:
         # 编码后再进显存与网络输出计算Loss
         label_class_out = []
         label_box_out   = []
-        ay_ax = self.train_anchors_yxhw[:, :2]
-        ah_aw = self.train_anchors_yxhw[:, 2:]
+        _ay_ax = self.train_anchors_yxhw[:, :2]
+        _ah_aw = self.train_anchors_yxhw[:, 2:]
         for b in range(len(label_class)):
             # 类别编号为-1表示计算时舍弃
             label_class_out_b = torch.full((self.train_an,), -1).long()
             label_box_out_b = torch.zeros(self.train_an, 4)
             # 计算IOU矩阵, 行代表每一个锚框，列代表每一个标签框
             iou = box_iou(self.train_anchors_yxyx, label_box[b]) # [an, Nb]
+            if (iou.shape[0] <= 0):  # 如果这张图中没有可用的框
+                continue
             # 得到正反例掩码
             iou_pos_mask = iou > self.train_iou_th[1] # [an, Nb]
             iou_neg_mask = iou < self.train_iou_th[0] # [an, Nb]
@@ -105,6 +107,8 @@ class Encoder:
             # f4 -> log(lb_w / a_w)
             # 需要对两套选择方案各计算一次
             lb_yxyx_1 = label_box[b][label_select_1] # [S1,4]
+            ay_ax = _ay_ax[label_select_1]
+            ah_aw = _ah_aw[label_select_1]
             lb_ymin_xmin_1, lb_ymax_xmax_1 = lb_yxyx_1[:, :2], lb_yxyx_1[:, 2:]
             lbh_lbw_1 = lb_ymax_xmax_1 - lb_ymin_xmin_1
             lby_lbx_1 = (lb_ymin_xmin_1 + lb_ymax_xmax_1)/2.0
@@ -113,6 +117,8 @@ class Encoder:
             label_box_out_b[anchors_pos_mask] = torch.cat([f1_f2_1, f3_f4_1],dim=1)
             # 需要对两套选择方案各计算一次
             lb_yxyx_2 = label_box[b][label_select_2] # [s2,4]
+            ay_ax = _ay_ax[label_select_2]
+            ah_aw = _ah_aw[label_select_2]
             lb_ymin_xmin_2, lb_ymax_xmax_2 = lb_yxyx_2[:, :2], lb_yxyx_2[:, 2:]
             lbh_lbw_2 = lb_ymax_xmax_2 - lb_ymin_xmin_2
             lby_lbx_2 = (lb_ymin_xmin_2 + lb_ymax_xmax_2)/2.0
@@ -122,22 +128,22 @@ class Encoder:
             # 加入列表
             label_class_out.append(label_class_out_b)
             label_box_out.append(label_box_out_b)
-		# 堆积为 class_b:[b, an]  box_b:[b, an, 4]
-		class_targets = torch.stack(label_class_out, dim=0)
+        # 堆积为 class_b:[b, an]  box_b:[b, an, 4]
+        class_targets = torch.stack(label_class_out, dim=0)
         box_targets = torch.stack(label_box_out, dim=0)
         return class_targets, box_targets
-    
+
     def decode(self, cls_out, reg_out, img_size):
         # cls_out:[b, an, classes]  reg_out:[b, an, 4]
         # 推理时对网络输出解码成目标框
         # 推理时不固定图像大小，因此需要 img_size=(H,W)
         # 解码输出: 
-        #	cls_i_preds:[b, an]  t.long  响应最高的类别
-        #	cls_p_preds:[b, an]  t.float 响应最高类别的置信度
-        #	reg_preds:[b, an, 4] t.float 框回归值:ymin,xmin,ymax,xmax
+        #   cls_i_preds:[b, an]  t.long  响应最高的类别
+        #   cls_p_preds:[b, an]  t.float 响应最高类别的置信度
+        #   reg_preds:[b, an, 4] t.float 框回归值:ymin,xmin,ymax,xmax
         cls_p_preds, cls_i_preds = torch.max(cls_out.sigmoid(), dim=2)
         anchors_yxyx, anchors_yxhw = \
-        	gen_anchors(self.a_hw, self.scales, img_size, self.first_stride)
+            gen_anchors(self.a_hw, self.scales, img_size, self.first_stride)
         ay_ax = anchors_yxhw[:, :2]
         ah_aw = anchors_yxhw[:, 2:]
         reg_preds = []
@@ -158,7 +164,7 @@ class Encoder:
             ymax_xmax = y_x + h_w/2.0
             ymin_xmin_ymax_xmax = torch.cat([ymin_xmin,ymax_xmax],dim=1)
             reg_preds.append(ymin_xmin_ymax_xmax)
-		# 压成 reg_preds:[b, an, 4] t.float  ymin,xmin,ymax,xmax
+        # 压成 reg_preds:[b, an, 4] t.float  ymin,xmin,ymax,xmax
         reg_preds = torch.stack(reg_preds, dim=0)
         return cls_i_preds, cls_p_predsv, reg_preds
 ```
