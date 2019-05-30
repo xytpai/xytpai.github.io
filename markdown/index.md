@@ -33,7 +33,7 @@
 |       [深度学习框架 Tenshell 实现](dlgraph.html)        |
 | :-----------------------------------------------------: |
 |          笔者使用C与CUDA编写的小型深度学习框架          |
-| [**目标检测 RetinaNet 复现**](retinanet_extractor.html) |
+| [**目标检测 RetinaNet 复现**](retinanet_dataset.html) |
 |            适用于制作目标检测的BaseLine代码             |
 |   [**卷积神经网络正交 Dropout 单元**](cnn_block.html)   |
 |           提高卷积神经网络泛化能力的方法复现            |
