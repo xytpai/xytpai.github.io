@@ -78,7 +78,9 @@ class Encoder:
             label_box_out_b = torch.zeros(self.train_an, 4)
             # 计算IOU矩阵, 行代表每一个锚框，列代表每一个标签框
             iou = box_iou(self.train_anchors_yxyx, label_box[b]) # [an, Nb]
-            if (iou.shape[0] <= 0):  # 如果这张图中没有可用的框
+            if (iou.shape[1] <= 0):  # 如果这张图中没有可用的框
+                label_class_out.append(label_class_out_b)
+                label_box_out.append(label_box_out_b)
                 continue
             # 得到正反例掩码
             iou_pos_mask = iou > self.train_iou_th[1] # [an, Nb]
@@ -107,8 +109,8 @@ class Encoder:
             # f4 -> log(lb_w / a_w)
             # 需要对两套选择方案各计算一次
             lb_yxyx_1 = label_box[b][label_select_1] # [S1,4]
-            ay_ax = _ay_ax[label_select_1]
-            ah_aw = _ah_aw[label_select_1]
+            ay_ax = _ay_ax[anchors_pos_mask]
+            ah_aw = _ah_aw[anchors_pos_mask]
             lb_ymin_xmin_1, lb_ymax_xmax_1 = lb_yxyx_1[:, :2], lb_yxyx_1[:, 2:]
             lbh_lbw_1 = lb_ymax_xmax_1 - lb_ymin_xmin_1
             lby_lbx_1 = (lb_ymin_xmin_1 + lb_ymax_xmax_1)/2.0
@@ -117,8 +119,8 @@ class Encoder:
             label_box_out_b[anchors_pos_mask] = torch.cat([f1_f2_1, f3_f4_1],dim=1)
             # 需要对两套选择方案各计算一次
             lb_yxyx_2 = label_box[b][label_select_2] # [s2,4]
-            ay_ax = _ay_ax[label_select_2]
-            ah_aw = _ah_aw[label_select_2]
+            ay_ax = _ay_ax[anchors_select]
+            ah_aw = _ah_aw[anchors_select]
             lb_ymin_xmin_2, lb_ymax_xmax_2 = lb_yxyx_2[:, :2], lb_yxyx_2[:, 2:]
             lbh_lbw_2 = lb_ymax_xmax_2 - lb_ymin_xmin_2
             lby_lbx_2 = (lb_ymin_xmin_2 + lb_ymax_xmax_2)/2.0
@@ -142,6 +144,7 @@ class Encoder:
         #   cls_p_preds:[b, an]  t.float 响应最高类别的置信度
         #   reg_preds:[b, an, 4] t.float 框回归值:ymin,xmin,ymax,xmax
         cls_p_preds, cls_i_preds = torch.max(cls_out.sigmoid(), dim=2)
+        cls_i_preds = cls_i_preds + 1
         anchors_yxyx, anchors_yxhw = \
             gen_anchors(self.a_hw, self.scales, img_size, self.first_stride)
         ay_ax = anchors_yxhw[:, :2]
@@ -156,8 +159,8 @@ class Encoder:
             # w = f4.exp() * a_w
             # ymin, xmin = y-h/2, x-w/2
             # ymax, xmax = y+h/2, x+w/2
-            f1_f2 = reg_preds[b, :, :2]
-            f3_f4 = reg_preds[b, :, 2:]
+            f1_f2 = reg_out[b, :, :2]
+            f3_f4 = reg_out[b, :, 2:]
             y_x = f1_f2 * ah_aw + ay_ax
             h_w = f3_f4.exp() * ah_aw
             ymin_xmin = y_x - h_w/2.0
@@ -166,7 +169,7 @@ class Encoder:
             reg_preds.append(ymin_xmin_ymax_xmax)
         # 压成 reg_preds:[b, an, 4] t.float  ymin,xmin,ymax,xmax
         reg_preds = torch.stack(reg_preds, dim=0)
-        return cls_i_preds, cls_p_predsv, reg_preds
+        return cls_i_preds, cls_p_preds, reg_preds
 ```
 
 
