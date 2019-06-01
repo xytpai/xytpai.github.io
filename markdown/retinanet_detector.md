@@ -1,4 +1,4 @@
-| [返回主页](index.html) | [数据集接口](retinanet_dataset.html) | [特征提取器](retinanet_extractor.html) | 检测器 | [锚生成器](retinanet_anchors.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [推理过程](retinanet_inference.html) | [性能评估](retinanet_eval.html) |
+| [返回主页](index.html) | [数据集接口](retinanet_dataset.html) | [特征提取器](retinanet_extractor.html) | 检测器 | [锚生成器](retinanet_anchors.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [性能评估](retinanet_eval.html) |
 
 ---
 
@@ -70,9 +70,9 @@ class Detector(nn.Module):
         # 拆分输入, 这个输入就是前面的 Resnet-50 输出
         out3, out4, out5 = out_list
         # 直接卷积out5得到s6预测层
-        out6_pred = self.conv_out6(out5)
+        out6_pred = self.relu(self.conv_out6(out5))
         # 直接投影out5得到s5预测层
-        out5_pred = self.prj_5(out5)
+        out5_pred = self.relu(self.prj_5(out5))
         # s4预测层:s5预测层上采用+out4投影
         out5_up = self.upsample(out5_pred)
         out4_pred = out5_up + self.prj_4(out4)
@@ -80,8 +80,8 @@ class Detector(nn.Module):
         out4_up = self.upsample(out4_pred)
         out3_pred = out4_up + self.prj_3(out3)
         # 减少不连续性
-        out3_pred = self.relu(self.conv_3(out3_pred))
         out4_pred = self.relu(self.conv_4(out4_pred))
+        out3_pred = self.relu(self.conv_3(out3_pred))
         # 按照步级从小到大排列
         pred_list = [out3_pred, out4_pred, out5_pred, out6_pred]
         # 获得最终输出

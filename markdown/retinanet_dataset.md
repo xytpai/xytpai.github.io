@@ -1,4 +1,4 @@
-| [返回主页](index.html) | 数据集接口 | [特征提取器](retinanet_extractor.html) | [检测器](retinanet_detector.html) | [锚生成器](retinanet_dataset.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [推理过程](retinanet_inference.html) | [性能评估](retinanet_eval.html) |
+| [返回主页](index.html) | 数据集接口 | [特征提取器](retinanet_extractor.html) | [检测器](retinanet_detector.html) | [锚生成器](retinanet_dataset.html) | [解析器](retinanet_encoder.html) |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [性能评估](retinanet_eval.html) |
 
 ---
 
@@ -182,7 +182,7 @@ def center_crop(img, boxes, size):
 ### 4. 随机裁剪
 
 ```python
-def random_crop(img, boxes, scale_min=0.75):
+def random_crop(img, boxes, scale_min=0.85):
     '''
     将一张PIL图像按照一定尺寸与长宽比区间随机裁剪, 同时变换标注
     scale_min 表示裁剪区域最小的尺寸比例

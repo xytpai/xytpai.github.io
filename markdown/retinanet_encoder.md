@@ -1,4 +1,4 @@
-| [返回主页](index.html) | [数据集接口](retinanet_dataset.html) | [特征提取器](retinanet_extractor.html) | [检测器](retinanet_detector.html) | [锚生成器](retinanet_anchors.html) | 解析器 |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [推理过程](retinanet_inference.html) | [性能评估](retinanet_eval.html) |
+| [返回主页](index.html) | [数据集接口](retinanet_dataset.html) | [特征提取器](retinanet_extractor.html) | [检测器](retinanet_detector.html) | [锚生成器](retinanet_anchors.html) | 解析器 |  [损失接口](retinanet_loss.html) | [训练过程](retinanet_train.html) | [性能评估](retinanet_eval.html) |
 
 ---
 
@@ -97,8 +97,7 @@ class Encoder:
             label_class_out_b[anchors_neg_mask] = 0
             # 为了不出现无正例情况, 与标签框最匹配的锚框当作正例
             # 注意这一步分配先于后面的分配
-            label_select_2 = label_select[anchors_select]
-            label_class_out_b[anchors_select] = label_class[b][label_select_2]
+            label_class_out_b[anchors_select] = label_class[b]
             # 再对正例分配相应类别
             label_select_1 = label_select[anchors_pos_mask]
             label_class_out_b[anchors_pos_mask] = label_class[b][label_select_1]
@@ -109,7 +108,7 @@ class Encoder:
             # f3 -> log(lb_h / a_h)
             # f4 -> log(lb_w / a_w)
             # 需要对两套选择方案各计算一次
-            lb_yxyx_2 = label_box[b][label_select_2] # [s2,4]
+            lb_yxyx_2 = label_box[b] # [Nb, 4]
             ay_ax = _ay_ax[anchors_select]
             ah_aw = _ah_aw[anchors_select]
             lb_ymin_xmin_2, lb_ymax_xmax_2 = lb_yxyx_2[:, :2], lb_yxyx_2[:, 2:]
@@ -117,9 +116,9 @@ class Encoder:
             lby_lbx_2 = (lb_ymin_xmin_2 + lb_ymax_xmax_2)/2.0
             f1_f2_2 = (lby_lbx_2 - ay_ax) / ah_aw
             f3_f4_2 = (lbh_lbw_2 / ah_aw).log()
-            label_box_out_b[anchors_select] = torch.cat([f1_f2_2, f3_f4_2],dim=1)
+            label_box_out_b[anchors_select] = torch.cat([f1_f2_2, f3_f4_2], dim=1)
             # 需要对两套选择方案各计算一次
-            lb_yxyx_1 = label_box[b][label_select_1] # [S1,4]
+            lb_yxyx_1 = label_box[b][label_select_1] # [S, 4]
             ay_ax = _ay_ax[anchors_pos_mask]
             ah_aw = _ah_aw[anchors_pos_mask]
             lb_ymin_xmin_1, lb_ymax_xmax_1 = lb_yxyx_1[:, :2], lb_yxyx_1[:, 2:]
@@ -127,7 +126,7 @@ class Encoder:
             lby_lbx_1 = (lb_ymin_xmin_1 + lb_ymax_xmax_1)/2.0
             f1_f2_1 = (lby_lbx_1 - ay_ax) / ah_aw
             f3_f4_1 = (lbh_lbw_1 / ah_aw).log()
-            label_box_out_b[anchors_pos_mask] = torch.cat([f1_f2_1, f3_f4_1],dim=1)
+            label_box_out_b[anchors_pos_mask] = torch.cat([f1_f2_1, f3_f4_1], dim=1)
             # 加入列表
             label_class_out.append(label_class_out_b)
             label_box_out.append(label_box_out_b)
@@ -166,7 +165,7 @@ class Encoder:
             h_w = f3_f4.exp() * ah_aw
             ymin_xmin = y_x - h_w/2.0
             ymax_xmax = y_x + h_w/2.0
-            ymin_xmin_ymax_xmax = torch.cat([ymin_xmin,ymax_xmax],dim=1)
+            ymin_xmin_ymax_xmax = torch.cat([ymin_xmin, ymax_xmax], dim=1)
             reg_preds.append(ymin_xmin_ymax_xmax)
         # 压成 reg_preds:[b, an, 4] t.float  ymin,xmin,ymax,xmax
         reg_preds = torch.stack(reg_preds, dim=0)
