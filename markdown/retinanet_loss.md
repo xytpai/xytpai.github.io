@@ -57,12 +57,13 @@ def focal_loss_detection(
     # 计算乘项
     w = alpha*one_hot + (1.0-alpha)*(1.0-one_hot)
     w = w * torch.pow((1.0-pt), gamma)
+    # 计算分类损失
+    loss_cls = torch.sum(-w * pt.log())
     # 计算正例数目
     mask_reg = targets_cls > 0
     num_pos = float(torch.sum(mask_reg))
-    # 得到分类损失值
+    # 抛出异常
     assert num_pos>0, 'Make sure every image has assigned anchors.'
-    loss_cls = torch.sum(-w * pt.log()) / (num_pos)
     # 下面计算回归损失
     # 选中所有正例
     feature_reg = feature_reg[mask_reg]
