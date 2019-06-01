@@ -26,7 +26,7 @@ def focal_loss_detection(
     feature_cls, feature_reg, 
     targets_cls, targets_reg,
     alpha=0.25, gamma=2,
-    factor_cls=1.0, factor_reg=10.0):
+    factor_cls=1.0, factor_reg=1.0):
     '''
     feature_cls: [b, an, classes] t.float
     feature_reg: [b, an, 4]       t.float
@@ -49,7 +49,8 @@ def focal_loss_detection(
     # 拿到标签的OneHot编码
     targets_cls = targets_cls[mask_cls].to(feature_cls.device) #[S+-]
     one_hot = torch.zeros(feature_cls.shape[0], 
-            1 + classes).to(feature_cls.device).scatter_(1, targets_cls.view(-1,1), 1) # [S+-, 1+classes]
+            1 + classes).to(feature_cls.device).scatter_(1, 
+                targets_cls.view(-1,1), 1) # [S+-, 1+classes]
     one_hot = one_hot[:, 1:] # [S+-, classes]
     # 计算pt
     pt = p*one_hot + (1.0-p)*(1.0-one_hot)
