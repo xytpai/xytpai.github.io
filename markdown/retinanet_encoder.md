@@ -242,6 +242,9 @@ class Encoder:
             cls_i_preds_b = cls_i_preds_b[keep]
             cls_p_preds_b = cls_p_preds_b[keep]
             reg_preds_b = reg_preds_b[keep]
+            reg_preds_b[:, :2] = reg_preds_b[:, :2].clamp(min=0)
+            reg_preds_b[:, 2] = reg_preds_b[:, 2].clamp(max=img_size[0]-1)
+            reg_preds_b[:, 3] = reg_preds_b[:, 3].clamp(max=img_size[1]-1)
             _cls_i_preds.append(cls_i_preds_b)
             _cls_p_preds.append(cls_p_preds_b)
             _reg_preds.append(reg_preds_b)
