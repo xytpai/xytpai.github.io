@@ -26,7 +26,61 @@ def box_iou(box1, box2, eps=1e-10):
 
 
 
-### 2. 数据解析器
+### 2. 非极大抑制
+
+```python
+def box_nms(bboxes, scores, threshold=0.5, mode='union', eps=1e-10):
+    '''
+    bboxes: [N,4] t.float32   yxyx
+    scores: [N]   t.float32
+    mode: (str) 'union' or 'min'.
+    return: [S]   t.long      index of keep boxes
+    '''
+    ymin, xmin, ymax, xmax = bboxes[:,0], bboxes[:,1], bboxes[:,2], bboxes[:,3]
+    areas = (xmax-xmin+eps) * (ymax-ymin+eps)
+    order = scores.sort(0, descending=True)[1] # 按照分数排序的索引
+    keep = []
+    # 从分数高的框向分数低的框迭代
+    while order.numel() > 0:
+        i = order[0] 
+        # 先选当前分数最高的框
+        keep.append(i)
+        # 这个是最后一个框就跳出了
+        if order.numel() == 1:
+            break
+        # 得到当前高分框与其余所有框的相交区域
+        _ymin = ymin[order[1:]].clamp(min=float(ymin[i]))
+        _xmin = xmin[order[1:]].clamp(min=float(xmin[i]))
+        _ymax = ymax[order[1:]].clamp(max=float(ymax[i]))
+        _xmax = xmax[order[1:]].clamp(max=float(xmax[i]))
+        _h = (_ymax-_ymin+eps).clamp(min=0)
+        _w = (_xmax-_xmin+eps).clamp(min=0)
+        # 得到相交面积
+        inter = _h * _w
+        # union 即使用交并比来计算
+        if mode == 'union':
+            ovr = inter / (areas[i] + areas[order[1:]] - inter)
+        # min 使用各框与当前框相交区域与各框面积比值计算
+        # 这里将各框面积最大计算值限定在当前框的面积
+        elif mode == 'min':
+            ovr = inter / areas[order[1:]].clamp(max=float(areas[i]))
+        else:
+            raise TypeError('Unknown nms mode: %s.' % mode)
+        # 这个交并比大于阈值的将会被丢弃
+        # ids 为保留框的索引
+        # 注意这里需要+1, 索引相对当前有一位偏移
+        ids = (ovr<=threshold).nonzero().squeeze() + 1
+        # 全部丢弃
+        if ids.numel() == 0:
+            break
+        # 选择留下来的框
+        order = torch.index_select(order, 0, ids)
+    return torch.LongTensor(keep)
+```
+
+
+
+### 3. 数据解析器
 
 网络输出、标签、锚框三者的对接接口。<br>
 训练时，标签与锚框编码成一个张量，这个张量与网络输出即可送入损失接口计算。<br>
@@ -135,14 +189,18 @@ class Encoder:
         box_targets = torch.stack(label_box_out, dim=0)
         return class_targets, box_targets
 
-    def decode(self, cls_out, reg_out, img_size):
+    def decode(self, cls_out, reg_out, img_size, nms=True, nms_th=0.5):
         # cls_out:[b, an, classes]  reg_out:[b, an, 4]
         # 推理时对网络输出解码成目标框
         # 推理时不固定图像大小，因此需要 img_size=(H,W)
-        # 解码输出: 
+        # 解码输出 nms == False: 
         #   cls_i_preds:[b, an]  t.long  响应最高的类别
         #   cls_p_preds:[b, an]  t.float 响应最高类别的置信度
         #   reg_preds:[b, an, 4] t.float 框回归值:ymin,xmin,ymax,xmax
+        # 解码输出 nms == True:
+        #	cls_i_preds: ([s1], [s2], ...[sb])  t.long
+        #	cls_p_preds: ([s1], [s2], ...[sb])  t.float
+        #   reg_preds:   ([s1,4], [s2,4], ...[sb,4]) t.float
         cls_p_preds, cls_i_preds = torch.max(cls_out.sigmoid(), dim=2)
         cls_i_preds = cls_i_preds + 1
         anchors_yxyx, anchors_yxhw = \
@@ -169,7 +227,25 @@ class Encoder:
             reg_preds.append(ymin_xmin_ymax_xmax)
         # 压成 reg_preds:[b, an, 4] t.float  ymin,xmin,ymax,xmax
         reg_preds = torch.stack(reg_preds, dim=0)
-        return cls_i_preds, cls_p_preds, reg_preds
+        if nms == False:
+            return cls_i_preds, cls_p_preds, reg_preds
+        # 进行非极大抑制
+        _cls_i_preds = []
+        _cls_p_preds = []
+        _reg_preds = []
+        for b in range(cls_out.shape[0]):
+            mask = cls_p_preds[b] > 0.5
+            cls_i_preds_b = cls_i_preds[b][mask]
+            cls_p_preds_b = cls_p_preds[b][mask]
+            reg_preds_b = reg_preds[b][mask]
+            keep = box_nms(reg_preds_b, cls_p_preds_b, nms_th)
+            cls_i_preds_b = cls_i_preds_b[keep]
+            cls_p_preds_b = cls_p_preds_b[keep]
+            reg_preds_b = reg_preds_b[keep]
+            _cls_i_preds.append(cls_i_preds_b)
+            _cls_p_preds.append(cls_p_preds_b)
+            _reg_preds.append(reg_preds_b)
+        return _cls_i_preds, _cls_p_preds, _reg_preds
 ```
 
 
