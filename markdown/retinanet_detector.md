@@ -70,16 +70,18 @@ class Detector(nn.Module):
         # 拆分输入, 这个输入就是前面的 Resnet-50 输出
         out3, out4, out5 = out_list
         # 直接卷积out5得到s6预测层
-        out6_pred = self.relu(self.conv_out6(out5))
+        out6_pred = self.conv_out6(out5)
         # 直接投影out5得到s5预测层
-        out5_pred = self.relu(self.prj_5(out5))
+        out5_pred = self.prj_5(out5)
         # s4预测层:s5预测层上采用+out4投影
         out5_up = self.upsample(out5_pred)
         out4_pred = out5_up + self.prj_4(out4)
         # s3预测层:s4预测层上采用+out3投影
         out4_up = self.upsample(out4_pred)
         out3_pred = out4_up + self.prj_3(out3)
-        # 减少不连续性
+        # 减少不连续性，增加一致性
+        out6_pred = self.relu(out6_pred)
+        out5_pred = self.relu(out5_pred)
         out4_pred = self.relu(self.conv_4(out4_pred))
         out3_pred = self.relu(self.conv_3(out3_pred))
         # 按照步级从小到大排列
