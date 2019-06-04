@@ -147,3 +147,185 @@ for epoch_id in range(len(epoch_num)):
 
 ### 2. 检测器训练
 
+```python
+import numpy as np
+import torch
+import torchvision.transforms as transforms
+from dataset import Dataset_Detection
+from extractor import Extractor
+from detector import Detector
+from encoder import Encoder
+from loss import focal_loss_detection
+
+
+
+# define parameters
+load = False
+save = True
+pretrain = True
+freeze_bn = False
+num_epochs = 200
+nbatch = 30
+lr = 0.01
+step_save = 100
+root = '/home1/xyt/dataset/VOC2012/JPEGImages'
+list_file = 'data/voc_trainval.txt'
+iou_th = (0.3, 0.5)
+size = 257
+GPU_DEVICE = 7
+
+
+
+# get models
+torch.cuda.set_device(GPU_DEVICE)
+net_e = Extractor().cuda()
+net_d = Detector().cuda()
+encoder = Encoder(train_iou_th=iou_th, train_size=(size, size))
+
+
+
+# define dataset
+transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.485,0.456,0.406), (0.229,0.224,0.225))])
+dataset = Dataset_Detection(root, list_file, size=size, train=True, transform=transform)
+loader = torch.utils.data.DataLoader(dataset, batch_size=nbatch, shuffle=True,
+                                     num_workers=0, collate_fn=dataset.collate_fn)
+
+
+
+# load
+log = []
+device_out = 'cuda:%d' % (GPU_DEVICE)
+if load:
+    net_e.load_state_dict(torch.load('net_e.pkl', map_location=device_out))
+    net_d.load_state_dict(torch.load('net_d.pkl', map_location=device_out))
+    log = list(np.load('log.npy'))
+else:
+    if pretrain:
+        # net_e.load_state_dict(torch.load('net_e_pretrain.pkl', 
+        #	map_location=device_out))
+        net_e.load_state_dict({k.replace('module.',''): \
+            v for k,v in torch.load('net_e_pretrain.pkl', map_location=device_out).items()}) # 预训练模型使用多GPU
+if freeze_bn:
+    net_e.freeze_bn()
+opt_e = torch.optim.SGD(net_e.parameters(), lr=lr, momentum=0.9, weight_decay=0.0001)
+opt_d = torch.optim.SGD(net_d.parameters(), lr=lr, momentum=0.9, weight_decay=0.0001)
+
+
+
+# main loop
+for epoch in range(num_epochs):
+    for i, (img, bbox, label) in enumerate(loader):
+        # get inputs
+        img = img.cuda()
+        # zero grad
+        opt_e.zero_grad()
+        opt_d.zero_grad()
+        # get output and loss
+        out = net_e(img, classify=False)
+        cls_out, reg_out = net_d(out)
+        cls_targets, reg_targets = encoder.encode(label, bbox)
+        cls_targets, reg_targets = cls_targets.cuda(), reg_targets.cuda()
+        loss = focal_loss_detection(cls_out, reg_out, 
+                    cls_targets, reg_targets)
+        # opt
+        loss.backward()
+        opt_e.step()
+        opt_d.step()
+        # print
+        print('epc:%d,step:%d,loss:%f' % (epoch,i,loss))
+        # save
+        log.append(float(loss))
+        if (i%step_save == (step_save-1)) and save:
+                torch.save(net_e.state_dict(),'net_e.pkl')
+                torch.save(net_d.state_dict(),'net_d.pkl')
+                np.save('log.npy', log)
+```
+
+
+
+### 3. 查看检测效果
+
+```python
+import torch
+import numpy as np
+import torchvision.transforms as transforms
+from matplotlib import pyplot as plt
+import cv2, math
+from extractor import Extractor
+from detector import Detector
+from encoder import Encoder
+from dataset import show_bbox
+
+
+
+# TODO: define parameter
+img_path = 'img/0.jpg'
+
+
+
+# define network
+net_e = Extractor()
+net_d  = Detector()
+encoder = Encoder()
+
+
+
+# load
+net_e.load_state_dict(torch.load('net_e.pkl', map_location='cpu'))
+net_d.load_state_dict(torch.load('net_d.pkl', map_location='cpu'))
+net_e.eval()
+net_d.eval()
+
+
+
+# prepare img
+img = cv2.imread(img_path)
+height = img.shape[0]
+width = img.shape[1]
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = img.reshape((1, height, width, 3)).transpose((0, 3, 1, 2))  # [1, 3, H, W]
+
+
+
+# TODO: get output
+x = torch.from_numpy(img).float().div(255)
+normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+x[0] = normalize(x[0])
+out = net_e(x, classify=False)
+cls_out, reg_out = net_d(out)
+cls_i_preds, cls_p_preds, reg_preds = encoder.decode(cls_out, reg_out, (height, width))
+
+
+
+print(cls_i_preds[0].shape)
+print(cls_p_preds[0].shape)
+print(reg_preds[0].shape)
+VOC_LABEL_NAMES = (
+    'background',#0
+    'aeroplane',#1
+    'bicycle',#2
+    'bird',#3
+    'boat',#4
+    'bottle',#5
+    'bus',#6
+    'car',#7
+    'cat',#8
+    'chair',#9
+    'cow',#10
+    'diningtable',#11
+    'dog',#12
+    'horse',#13
+    'motorbike',#14
+    'person',#15
+    'pottedplant',#16
+    'sheep',#17
+    'sofa',#18
+    'train',#19
+    'tvmonitor'#20
+    )
+show_bbox(img[0]/255.0, reg_preds[0], cls_i_preds[0], VOC_LABEL_NAMES)
+```
+
+
