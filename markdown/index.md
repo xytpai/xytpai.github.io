@@ -1,48 +1,5 @@
-![home](img\home.jpg)
-
-
-
-## Introduction
-
-笔者是深度学习方向的小硕一枚,  坐标上海. <br>
-这个博客记录了一些笔者在学习和项目中积累的一些知识与心得. <br>
-纯粹的创作目的,  个人喜欢把东西记录并且整理起来. <br>
-如果能帮助到你,  是我莫大的荣幸.  <br>
-有意联系 494730294@qq.com   **^ - ^** <br>
-
-
-
-## Tools
-
-|                [Pytorch 速查手册](torch.html)                |
-| :----------------------------------------------------------: |
-| 为了方便查阅, 笔者将深度学习框架 Pytorch 的使用手册结合实践地翻译了下 |
-|              [**Python 学习记录**](python.html)              |
-|              笔者在学习 Python 的时候留下的东西              |
-|                [**YAML 速查记录**](yaml.html)                |
-|                     程序配置文件YAML语法                     |
-|             [**Python 爬虫学习记录**](worm.html)             |
-|                笔者在学习爬虫的时候留下的东西                |
-|            [**Ubuntu 舒适环境搭建**](ubuntu.html)            |
-|      建立一个友好的适用于机器学习开发的 Ubuntu 系统环境      |
-
-
-
-## Projects
-
-|       [深度学习框架 Tenshell 实现](dlgraph.html)        |
-| :-----------------------------------------------------: |
-|          笔者使用C与CUDA编写的小型深度学习框架          |
-| [**目标检测 RetinaNet 复现**](retinanet_dataset.html) |
-|            适用于制作目标检测的BaseLine代码             |
-|   [**卷积神经网络正交 Dropout 单元**](cnn_block.html)   |
-|           提高卷积神经网络泛化能力的方法复现            |
-
-
-
-## Records
-|      [强化学习记录](rl.html)   |
-| :-----------------------------------: |
-|笔者在学习强化学习时留下的记录|
-
-
+| **Author**          | Yutao Xu                                                     |
+| ------------------- | ------------------------------------------------------------ |
+| **Interest fields** | Machine Learning, Object Detection and Segmentation,  Reinforcement Learning |
+| **Affiliation**     | Student of Tongji University China                           |
+| **Contact**         | xytpai@foxmail.com                                           |
